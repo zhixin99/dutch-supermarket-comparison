@@ -80,6 +80,7 @@ export default function HomePage() {
       });
 
       const data = await res.json();
+      console.log("Search result:", data);
       setResult(JSON.stringify(data, null, 2));
     } catch (err: any) {
       setResult("Error: " + err.toString());
@@ -205,6 +206,15 @@ export default function HomePage() {
           </button>
         </div>
       </section>
+
+      {/* === Search Results  === */}
+      <section className="mt-10 bg-white/60 rounded-3xl p-6 backdrop-blur-xl shadow">
+        <h2 className="font-semibold mb-3">Results</h2>
+        <pre className="text-xs whitespace-pre-wrap">
+          {result}
+        </pre>
+      </section>
+
 
     </main>
   );
