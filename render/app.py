@@ -8,11 +8,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],        # CORS
+    allow_origins=[
+        "https://dutch-supermarket-comparison.vercel.app", # for deployed website
+        "http://localhost:3000",  # for local
+    ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
