@@ -80,71 +80,6 @@ def normalize_date(v):
 
 
 # ---------------------------------------------------------------------------
-# Unit parsing
-# ---------------------------------------------------------------------------
-def handle_normalized(unit_text): 
-    """
-    Converts the normalized format of unit (e g. 205 g, 290kg) into (unit_qty, unit_type),
-    with unit_type ∈ {"kg", "l", "piece"}.
-    """
-    m = re.match(r"^\s*(\d+(?:\.\d+)?)\s*([a-zA-Z]+)", unit_text)
-    if not m:
-        print("[WARN] cannot parse:", unit_text)
-        return None, None
-    
-    unit_qty = float(m.group(1))   
-    unit_type = m.group(2)
-
-    if unit_type in ("g","gram", "gr"): # "500 gr"," 154 gram"
-        return unit_qty / 1000.0, "kg"
-    if unit_type in ("kg", "kilo"):
-        return unit_qty, "kg"
-    if unit_type in ("ml","milliliter"):
-        return unit_qty / 1000.0, "l"
-    if unit_type == "cl":
-        return unit_qty / 100.0, "l"
-    if unit_type == "l":
-        return unit_qty, "l"    
-    
-    return unit_qty, "piece"
-
-
-def parse_unit(unit_text: str):
-    """
-    Converts messy Dutch unit strings into (unit_qty, unit_type)
-        - Converts messy unit into normalized unit first, so the function "handle_normalized" can handle it.
-    unit_type ∈ {"kg", "l", "piece"} or (None, None) if unknown.
-    """
-    if pd.isna(unit_text):
-        return None, None
-
-    s = unit_text.strip().lower()
-    s = s.replace(",", ".")
-    s = s.replace("×", "x")
-    s = s.replace("stuks", "stuk")
-    s = s.replace("st.", "stuk")
-    s = s.replace("-"," ")           # "5-pack" -> "5 pack"
-    s = re.sub(r"^\s*per\s+", "", s) # "per 500 g" -> "g", "per stuk" -> "stuk"
-    s = s.split("(")[0].strip()      # Extract everything before the first left parenthese "1 kg (ca. 5 stuk)"
-
-    # "stuk" -> "1 stuk"
-    if not any(i.isdigit() for i in s): 
-        s = "1 " + s
-
-    # "6 x 250 g" -> "1500 g"
-    m = re.match(r"(\d+)\s*x\s*(\d+(?:\.\d+)?)\s*([a-zA-Z]+)", s)
-    if m:
-        count = float(m.group(1))
-        size = float(m.group(2))
-        unit_type = m.group(3).split()[0] # eg. "6 x 250 g appel" -> drop "appel"
-        unit_qty = size * count
-        s = str(unit_qty) + unit_type
-    
-    return(handle_normalized(s))     
-
-
-
-# ---------------------------------------------------------------------------
 # Tweakwise API: Fetch the sku of all the products
 # ---------------------------------------------------------------------------
 
@@ -426,10 +361,6 @@ def fetch_all_products_with_prices():
 
         unit_du = format_unit(it.get("base_unit"), it.get("ratio"))
 
-        unit_type_en = None
-        unit_qty = None
-        if unit_du:
-            unit_qty, unit_type_en = parse_unit(unit_du)
 
         final_products.append(
             {
@@ -438,8 +369,6 @@ def fetch_all_products_with_prices():
                 "brand": it["brand"],
                 "product_name_du": it["title"],
                 "unit_du": unit_du,
-                "unit_type_en": unit_type_en,
-                "unit_qty": unit_qty,
                 "regular_price": price_info.get("regular_price"),
                 "current_price": price_info.get("current_price"),
             }
@@ -646,9 +575,7 @@ def refresh_hoogvliet_daily():
                 "sku": sku,
                 "url": p.get("url"),
                 "product_name_du": product_name_du,
-                "unit_du": p.get("unit_du"),
-                "unit_qty": p.get("unit_qty"),                
-                "unit_type_en": p.get("unit_type_en"),        
+                "unit_du": p.get("unit_du"),      
                 "regular_price": reg,
                 "current_price": cur,
                 "valid_from": valid_from,

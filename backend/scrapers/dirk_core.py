@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import re
 import time
 from datetime import date
 
-import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
@@ -12,72 +10,7 @@ from datetime import date, datetime
 import xml.etree.ElementTree as ET
 
 from backend.db.supabase_utils import get_supabase, upsert_rows
-from typing import List, Dict, Any
-
-
-
-# ---------------------------------------------------------------------------
-# Unit parsing
-# ---------------------------------------------------------------------------
-def handle_normalized(unit_text): 
-    """
-    Converts the normalized format of unit (e g. 205 g, 290kg) into (unit_qty, unit_type),
-    with unit_type ∈ {"kg", "l", "piece"}.
-    """
-    m = re.match(r"^\s*(\d+(?:\.\d+)?)\s*([a-zA-Z]+)", unit_text)
-    if not m:
-        print("[WARN] cannot parse:", unit_text)
-        return None, None
-    
-    unit_qty = float(m.group(1))   
-    unit_type = m.group(2)
-
-    if unit_type in ("g","gram", "gr"): # "500 gr"," 154 gram"
-        return unit_qty / 1000.0, "kg"
-    if unit_type in ("kg", "kilo"):
-        return unit_qty, "kg"
-    if unit_type == "ml":
-        return unit_qty / 1000.0, "l"
-    if unit_type == "cl":
-        return unit_qty / 100.0, "l"
-    if unit_type == "l":
-        return unit_qty, "l"    
-    
-    return unit_qty, "piece"
-
-
-def parse_unit(unit_text: str):
-    """
-    Converts messy Dutch unit strings into (unit_qty, unit_type)
-        - Converts messy unit into normalized unit first, so the function "handle_normalized" can handle it.
-    unit_type ∈ {"kg", "l", "piece"} or (None, None) if unknown.
-    """
-    if pd.isna(unit_text):
-        return None, None
-
-    s = unit_text.strip().lower()
-    s = s.replace(",", ".")
-    s = s.replace("×", "x")
-    s = s.replace("stuks", "stuk")
-    s = s.replace("st.", "stuk")
-    s = s.replace("-"," ")           # "5-pack" -> "5 pack"
-    s = re.sub(r"^\s*per\s+", "", s) # "per 500 g" -> "g", "per stuk" -> "stuk"
-    s = s.split("(")[0].strip()      # Extract everything before the first left parenthese "1 kg (ca. 5 stuk)"
-
-    # "stuk" -> "1 stuk"
-    if not any(i.isdigit() for i in s): 
-        s = "1 " + s
-
-    # "6 x 250 g" -> "1500 g"
-    m = re.match(r"(\d+)\s*x\s*(\d+(?:\.\d+)?)\s*([a-zA-Z]+)", s)
-    if m:
-        count = float(m.group(1))
-        size = float(m.group(2))
-        unit_type = m.group(3).split()[0] # eg. "6 x 250 g appel" -> drop "appel"
-        unit_qty = size * count
-        s = str(unit_qty) + unit_type
-    
-    return(handle_normalized(s))   
+from typing import Dict, Any
 
 
 # ---------------------------------------------------------------------------
@@ -239,12 +172,6 @@ def fetch_all_dirk_products(
 
         promo_start = offer.get("startDate") or raw.get("startDate")
         promo_end = offer.get("endDate") or raw.get("endDate")
-
-        
-        unit_qty = None
-        unit_type_en = None
-        if unit_du:
-            unit_qty, unit_type_en = parse_unit(unit_du)
     
 
         products.append(
@@ -253,8 +180,6 @@ def fetch_all_dirk_products(
                 "product_name_du": product_name_du,
                 "brand": info.get("brand"),
                 "unit_du": unit_du,
-                "unit_qty": unit_qty,
-                "unit_type_en": unit_type_en,
                 "regular_price": normal_price,
                 "current_price": offer_price,
                 "valid_from": promo_start,
@@ -503,8 +428,6 @@ def refresh_dirk_daily():
                 "product_name_du": product_name_du,
                 "brand": new.get("brand"),
                 "unit_du": new.get("unit_du"),
-                "unit_qty": new.get("unit_qty"),
-                "unit_type_en": new.get("unit_type_en"),
                 "regular_price": new.get("regular_price"),
                 "current_price": new.get("current_price"),
                 "valid_from": new.get("valid_from"),
