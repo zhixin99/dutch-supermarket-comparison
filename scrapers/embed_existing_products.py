@@ -11,6 +11,8 @@ from supabase_utils import get_supabase, upsert_rows
 from dotenv import load_dotenv
 load_dotenv()
 
+import numpy as np
+
 # --------------------------------------------------------------------
 # 1. Load Sentence Transformer model
 # --------------------------------------------------------------------
@@ -19,7 +21,7 @@ EMBED_MODEL = SentenceTransformer("sentence-transformers/paraphrase-multilingual
 print("[EMB] model loaded.")
 
 
-def encode_texts(texts: List[str]) -> List[List[float]]:
+def encode_texts(texts: List[str]) -> List[np.ndarray]:
     if not texts:
         return []
 
@@ -30,7 +32,7 @@ def encode_texts(texts: List[str]) -> List[List[float]]:
         show_progress_bar=True,
     )
  
-    return [[float(x) for x in vec] for vec in embs]
+    return [np.asarray(vec, dtype="float32") for vec in embs]
 
 
 # --------------------------------------------------------------------
