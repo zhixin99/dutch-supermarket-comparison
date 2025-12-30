@@ -6,10 +6,9 @@ from datetime import date
 
 import pandas as pd
 import requests
-from deep_translator import GoogleTranslator
 from datetime import date, datetime
 
-from supabase_utils import get_supabase, upsert_rows
+from backend.db.supabase_utils import get_supabase, upsert_rows
 from typing import List, Dict, Any
 
 import time
@@ -18,32 +17,6 @@ import pandas as pd
 from datetime import datetime, date
 from typing import Dict, Any, List, Set
 
-# ---------------------------------------------------------------------------
-# Translation
-# ---------------------------------------------------------------------------
-
-translation_cache = {}
-
-def translate_cached(text):
-    """
-    Translate a Dutch product name to English using GoogleTranslator, with an in-memory cache.
-
-    Returns None if text is None or translation fails.
-    """
-    if not text:
-        return None
-    
-    if text in translation_cache:
-        return translation_cache[text]
-
-    try:
-        en = GoogleTranslator(source='nl', target='en').translate(text)
-        translation_cache[text] = en
-        return en
-    except Exception as e:
-        print(f"[translate_product_names] Translation failed for: {text} | Reason: {e}")
-        return None
-    
 
 # ---------------------------------------------------------------------------
 # Unit parsing
@@ -576,14 +549,12 @@ def refresh_ah_daily():
         new = new_by_sku[sku]
 
         product_name_du = new.get("product_name_du")
-        product_name_en = translate_cached(product_name_du) if product_name_du else None
 
         rows_to_upsert.append(
             {
                 "sku": sku,
                 "url": new.get("url"),
                 "product_name_du": product_name_du,
-                "product_name_en": product_name_en,
                 "brand": new.get("brand"),
                 "unit_du": new.get("unit_du"),
                 "unit_qty": new.get("unit_qty"),
