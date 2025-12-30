@@ -29,5 +29,5 @@ jobs:
 
       - name: Run daily refresh script
         run: |
-          echo "Running refresh_daily.py..."
-          python backend/scrapers/refresh_daily.py
+          echo "Running refresh.py..."
+          python backend/scrapers/refresh.py
