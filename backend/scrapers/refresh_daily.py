@@ -4,40 +4,61 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from hoogvliet_core import refresh_hoogvliet_daily
 from dirk_core import refresh_dirk_daily
 from ah_core import refresh_ah_daily
-# from jumbo_core import refresh_jumbo_daily_once
 
+from processors.translate_products import translate_missing_product_names
+from processors.normalize_products import split_missing_unit
+from processors.embed_products import embed_missing_products
 
-TASKS = {
-    "hoogvliet": refresh_hoogvliet_daily,
-    "dirk": refresh_dirk_daily,
+PIPELINES = {
     "ah": refresh_ah_daily,
-    # "jumbo": refresh_jumbo_daily_once,
+    "dirk": refresh_dirk_daily,
+    "hoogvliet": refresh_hoogvliet_daily,
 }
+
+def run_pipeline(name: str, refresh_func):
+    print(f"[{name}] pipeline start")
+
+    # 1. refresh raw data
+    refresh_func()
+    print(f"[{name}] refresh done")
+
+    # 2. translate
+    translate_missing_product_names(name)
+    print(f"[{name}] translate done")
+
+    # 3. split
+    split_missing_unit(name)
+    print(f"[{name}] split done")
+
+    # 3. embed
+    embed_missing_products(name)
+    print(f"[{name}] embed done")
+
+    print(f"[{name}] pipeline finished")
 
 
 def main():
-    print("=== Start daily refresh for all supermarkets (in parallel) ===")
+    print("=== Start daily refresh pipelines (parallel by supermarket) ===")
 
     results = {}
 
-    # max_workers = len(TASKS)
-    with ThreadPoolExecutor(max_workers=len(TASKS)) as executor:
+    with ThreadPoolExecutor(max_workers=len(PIPELINES)) as executor:
         future_to_name = {
-            executor.submit(func): name
-            for name, func in TASKS.items()
+            executor.submit(run_pipeline, name, refresh_func): name
+            for name, refresh_func in PIPELINES.items()
         }
 
         for future in as_completed(future_to_name):
             name = future_to_name[future]
             try:
-                result = future.result()  
-                results[name] = {"status": "ok", "result": result}
-                print(f"[OK] {name} daily refresh finished: {result}")
+                future.result()
+                results[name] = "ok"
+                print(f"[OK] {name} pipeline completed")
             except Exception as e:
-                results[name] = {"status": "error", "error": str(e)}
-                print(f"[ERROR] {name} daily refresh failed: {e}")
+                results[name] = f"error: {e}"
+                print(f"[ERROR] {name} pipeline failed: {e}")
 
-    print("=== All daily refresh tasks finished ===")
+    print("=== All pipelines finished ===")
     print("Summary:", results)
 
 
