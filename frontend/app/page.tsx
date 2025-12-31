@@ -107,7 +107,7 @@ export default function HomePage() {
 
   // ================= Render =================
   return (
-    <main className="max-w-7xl mx-auto px-6 pb-10 pt-20">
+    <main className="max-w-7xl mx-auto px-6 pb-10 pt-10">
       {/* Title */}
       <h1 className="font-heading text-3xl md:text-5xl font-semibold text-center mb-12">
         Dutch Supermarket Price Compare
