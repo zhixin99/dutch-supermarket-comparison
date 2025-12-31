@@ -1,16 +1,10 @@
 from __future__ import annotations
 import requests
-import pandas as pd
-
-
 import re
 import time
 from datetime import date
-
-import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from deep_translator import GoogleTranslator
 from datetime import date, datetime
 
 from backend.db.supabase_utils import get_supabase, upsert_rows
