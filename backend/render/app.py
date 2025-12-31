@@ -6,9 +6,17 @@ from search_logic import search_one_product
 
 from fastapi.middleware.cors import CORSMiddleware
 
+from contextlib import asynccontextmanager
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("=== REGISTERED ROUTES ===")
+    for r in app.routes:
+        print(r.path, r.methods)
+    print("=========================")
+    yield
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # CORS
 app.add_middleware(
@@ -47,9 +55,3 @@ def search(req: SearchRequest):
 def health():
     return {"status": "ok", "message": "Render backend running"}
 
-@app.on_event("startup")
-def debug_routes():
-    print("=== REGISTERED ROUTES ===")
-    for r in app.routes:
-        print(r.path, r.methods)
-    print("=========================")
