@@ -33,7 +33,7 @@ export default function ProductCard({ product }: Props) {
           €{product.current_price.toFixed(2)}
         </div>
         <div className="text-sm text-orange-600">
-          €{product.unit_price.toFixed(2)} / {product.unit_type_en}
+          €{product.unit_price.toFixed(2)} / {product.unit_type_du}
         </div>
       </div>
     </a>
