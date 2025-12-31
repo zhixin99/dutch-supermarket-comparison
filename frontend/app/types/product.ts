@@ -9,7 +9,7 @@ export type Product = {
   product_name_en: string;
   unit_du: string;
   unit_qty: number;
-  unit_type_en: string;
+  unit_type_du: string;
   regular_price: number;
   current_price: number;
   unit_price: number;
