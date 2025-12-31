@@ -4,9 +4,9 @@ from backend.scrapers.hoogvliet_core import refresh_hoogvliet_daily
 from backend.scrapers.dirk_core import refresh_dirk_daily
 from backend.scrapers.ah_core import refresh_ah_daily
 
-from processors.translate_products import translate_missing_product_names
-from processors.normalize_products import split_missing_unit
-from processors.embed_products import embed_missing_products
+from backend.processors.translate_products import translate_missing_product_names
+from backend.processors.normalize_products import split_missing_unit
+from backend.processors.embed_products import embed_missing_products
 
 PIPELINES = {
     "ah": refresh_ah_daily,
