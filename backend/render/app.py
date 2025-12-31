@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
-print(">>> BEFORE importing search_logic")
+
 from search_logic import search_one_product
-print(">>> search_logic imported successfully")
+
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -46,3 +46,10 @@ def search(req: SearchRequest):
 @app.get("/")
 def health():
     return {"status": "ok", "message": "Render backend running"}
+
+@app.on_event("startup")
+def debug_routes():
+    print("=== REGISTERED ROUTES ===")
+    for r in app.routes:
+        print(r.path, r.methods)
+    print("=========================")
