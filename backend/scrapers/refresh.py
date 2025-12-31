@@ -1,9 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-
-from hoogvliet_core import refresh_hoogvliet_daily
-from dirk_core import refresh_dirk_daily
-from ah_core import refresh_ah_daily
+from backend.scrapers.hoogvliet_core import refresh_hoogvliet_daily
+from backend.scrapers.dirk_core import refresh_dirk_daily
+from backend.scrapers.ah_core import refresh_ah_daily
 
 from processors.translate_products import translate_missing_product_names
 from processors.normalize_products import split_missing_unit
