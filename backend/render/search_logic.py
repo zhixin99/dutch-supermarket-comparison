@@ -3,7 +3,7 @@ import requests
 import numpy as np
 import json
 
-from backend.db.supabase_utils import get_supabase
+from supabase_utils import get_supabase
 import os
 
 HF_SPACE_URL = os.getenv("HF_EMBEDDING_URL")
