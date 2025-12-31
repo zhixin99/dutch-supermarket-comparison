@@ -64,14 +64,8 @@ def fetch_webgroup_raw(web_group_id: int, store_id: int = DEFAULT_STORE_ID) -> l
         "productId": 21204,
         "normalPrice": 1.99,
         "offerPrice": 0.0,
-        "startDate": "...",
-        "endDate": "...",
-        "productOffer": {...} or null,
         "productInformation": {
             "productId": 21204,
-            "headerText": "...",
-            "packaging": "400 g",
-            "image": "...",
             ...
         }
       }
@@ -112,8 +106,10 @@ def fetch_webgroup_raw(web_group_id: int, store_id: int = DEFAULT_STORE_ID) -> l
     payload = {"query": query, "variables": {}}
 
     resp = requests.post(DIRK_GRAPHQL_URL, headers=HEADERS, json=payload, timeout=15)
+    print("[DEBUG] status:", resp.status_code)
     resp.raise_for_status()
     data = resp.json()
+    print("[DEBUG] raw response:", data)
 
     assort = (
         data.get("data", {})
@@ -290,7 +286,7 @@ def build_dirk_url_map() -> Dict[str, str]:
     sku: url dic
     """
     urls = crawl_urls()
-    sku_to_url: Dict[str, str] = {}
+    sku_to_url = {}
 
     for url in urls:
         pid = extract_product_id_from_url(url)
@@ -334,7 +330,7 @@ def refresh_dirk_daily():
     # 2. Fetch new dirk products via GraphQL
     # -------------------------------------------------------------------
     fresh_products = fetch_all_dirk_products()
-    new_by_sku: Dict[str, Dict[str, Any]] = {
+    new_by_sku = {
         str(p["sku"]): p for p in fresh_products if p.get("sku") is not None
     }
     new_skus = set(new_by_sku.keys())
