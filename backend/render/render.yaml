@@ -2,7 +2,7 @@ services:
   - type: web
     name: supermarket-backend
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r render/requirements.txt
     startCommand: uvicorn render.app:app --host 0.0.0.0 --port 10000
     envVars:
       - key: SUPABASE_URL
