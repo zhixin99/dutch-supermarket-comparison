@@ -10,7 +10,7 @@ from datetime import date, datetime
 import xml.etree.ElementTree as ET
 
 from backend.db.supabase_utils import get_supabase, upsert_rows
-from typing import Dict, Any
+from typing import Dict
 
 
 # ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ def normalize_date(v):
 # ---------------------------------------------------------------------------
 # Fetch product info using GraphQL
 # ---------------------------------------------------------------------------
-DIRK_GRAPHQL_URL = "https://web-dirk-gateway.detailresult.nl/graphql"
+DIRK_GRAPHQL_URL = "https://web-gateway.dirk.nl/graphql"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
@@ -182,7 +182,7 @@ def fetch_all_dirk_products(
                 "valid_to": promo_end,
                 # "department": info.get("department"),
                 # "webgroup": info.get("webgroup"),
-                # "image_path": info.get("image"),
+                "image_path": info.get("image"),
             }
         )
 
@@ -247,7 +247,6 @@ def crawl_urls():
 # ---------------------------------------------------------------------------
 # Extract product id from product url
 # ---------------------------------------------------------------------------
-import re
 from urllib.parse import urlparse
 
 def extract_product_id_from_url(url: str) -> int | None:
@@ -440,3 +439,6 @@ def refresh_dirk_daily():
 
     upsert_rows("dirk", rows_to_upsert, conflict_col="sku")
     print("[Dirk daily] Done.")
+
+
+refresh_dirk_daily()
