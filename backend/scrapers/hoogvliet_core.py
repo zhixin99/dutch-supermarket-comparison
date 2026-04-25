@@ -590,5 +590,3 @@ def refresh_hoogvliet_daily():
     upsert_rows("hoogvliet", rows_to_upsert, conflict_col="sku")
 
     print("[hoogvliet daily] Done.")
-
-refresh_hoogvliet_daily()
