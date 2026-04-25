@@ -5,9 +5,9 @@ import time
 from datetime import date
 import requests
 from bs4 import BeautifulSoup
-from datetime import date, datetime
-
+from datetime import date
 from backend.db.supabase_utils import get_supabase, upsert_rows
+from backend.scrapers.utils import normalize_price
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -50,30 +50,6 @@ def format_unit(base_unit, ratio):
     else:
         ratio_str = str(ratio)
     return f"{ratio_str} {base_unit}"
-
-
-def normalize_price(v):
-    """
-    Normalize price to float or None for comparison.
-    - In scrapper: current_price = f"0.{price_large_tag.get_text(strip=True)}". This is a string.
-    - In supabse: current_price is stored as float8
-    - To compare them, we need to normalize into float. 
-    """
-    if v is None:
-        return None
-    return float(v) 
-
-
-def normalize_date(v):
-    """Convert date/datetime to ISO string for comparison; keep None as None.
-    - In scrapper: date(2025, 11, 4)
-    - In supabse: "2025-11-04"
-    """
-    if v is None:
-        return None
-    if isinstance(v, (date, datetime)):
-        return v.isoformat()
-    return str(v)
 
 
 # ---------------------------------------------------------------------------
@@ -160,6 +136,7 @@ def fetch_category_items(tn_cid: str, page_size: int = 16):
         #         "title": "AH Bolletjes wit 10 stuks",
         #         "price": "1.85",
         #         "url": "/product/727444000/bolletjes-wit-10-stuks",
+        #         'image': 'https://cdn.hoogvliet.com/Images/Product/L/001019000.jpg',
         #         "attributes": [
         #             {"name": "BaseUnit", "values": ["stuk"]},
         #             {"name": "RatioBasePackingUnit", "values": ["10"]}
@@ -177,6 +154,7 @@ def fetch_category_items(tn_cid: str, page_size: int = 16):
                     "title": it["title"],
                     "price": it["price"],
                     "url": it["url"],
+                    "image": it["image"],
                     "base_unit": base_unit,
                     "ratio": ratio,
                 }
@@ -362,6 +340,7 @@ def fetch_all_products_with_prices():
                 "sku": sku,
                 "brand": it["brand"],
                 "product_name_du": it["title"],
+                "image": it["image"],
                 "unit_du": unit_du,
                 "regular_price": price_info.get("regular_price"),
                 "current_price": price_info.get("current_price"),
@@ -568,7 +547,8 @@ def refresh_hoogvliet_daily():
                 "sku": sku,
                 "url": p.get("url"),
                 "product_name_du": product_name_du,
-                "unit_du": p.get("unit_du"),      
+                "unit_du": p.get("unit_du"),  
+                "image": p.get("image"),    
                 "regular_price": reg,
                 "current_price": cur,
                 "valid_from": valid_from,

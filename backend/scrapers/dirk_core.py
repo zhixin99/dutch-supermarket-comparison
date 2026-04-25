@@ -1,43 +1,21 @@
 from __future__ import annotations
 
 import time
-from datetime import date
-
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
-from datetime import date, datetime
 import xml.etree.ElementTree as ET
 
 from backend.db.supabase_utils import get_supabase, upsert_rows
 from typing import Dict
 
-
-# ---------------------------------------------------------------------------
-# Normalize the price and date for refresh
-# ---------------------------------------------------------------------------
-def normalize_price(v):
-    """
-    Normalize price to float or None for comparison.
-    - In scrapper: current_price = f"0.{price_large_tag.get_text(strip=True)}". This is a string.
-    - In supabse: current_price is stored as float8
-    - To compare them, we need to normalize into float. 
-    """
-    if v is None:
-        return None
-    return float(v) 
+from backend.scrapers.utils import normalize_date
+from backend.scrapers.utils import normalize_price
 
 
-def normalize_date(v):
-    """Convert date/datetime to ISO string for comparison; keep None as None.
-    - In scrapper: date(2025, 11, 4)
-    - In supabse: "2025-11-04"
-    """
-    if v is None:
-        return None
-    if isinstance(v, (date, datetime)):
-        return v.isoformat()
-    return str(v)
+from dotenv import load_dotenv
+load_dotenv()
+
 
 
 # ---------------------------------------------------------------------------
@@ -106,10 +84,8 @@ def fetch_webgroup_raw(web_group_id: int, store_id: int = DEFAULT_STORE_ID) -> l
     payload = {"query": query, "variables": {}}
 
     resp = requests.post(DIRK_GRAPHQL_URL, headers=HEADERS, json=payload, timeout=15)
-    print("[DEBUG] status:", resp.status_code)
     resp.raise_for_status()
     data = resp.json()
-    print("[DEBUG] raw response:", data)
 
     assort = (
         data.get("data", {})
@@ -169,6 +145,8 @@ def fetch_all_dirk_products(
         promo_start = offer.get("startDate") or raw.get("startDate")
         promo_end = offer.get("endDate") or raw.get("endDate")
     
+        img_path = info.get("image") or ""
+        base_url = "https://web-fileserver.dirk.nl/"
 
         products.append(
             {
@@ -180,9 +158,7 @@ def fetch_all_dirk_products(
                 "current_price": offer_price,
                 "valid_from": promo_start,
                 "valid_to": promo_end,
-                # "department": info.get("department"),
-                # "webgroup": info.get("webgroup"),
-                "image_path": info.get("image"),
+                "image": base_url + img_path if img_path else None,
             }
         )
 
@@ -300,7 +276,6 @@ def build_dirk_url_map() -> Dict[str, str]:
 
     return sku_to_url
 
-
 def refresh_dirk_daily():
     """
     1. Use GraphQL to parse all products → new_by_sku
@@ -318,11 +293,11 @@ def refresh_dirk_daily():
     supabase = get_supabase()
     resp = supabase.table("dirk").select(
         "url, sku, regular_price, current_price, valid_from, valid_to, availability"
-    ).execute()
+    ).eq("availability", True).execute()
     old_rows = resp.data or []
     old_by_sku = {str(r["sku"]): r for r in old_rows if r.get("sku")}
     old_skus = set(old_by_sku.keys())
-    print(f"[Dirk daily] Found {len(old_skus)} existing dirk products in DB.")
+    print(f"[Dirk daily] Found {len(old_skus)} existing available dirk products in DB.")
 
 
     # -------------------------------------------------------------------
@@ -391,10 +366,11 @@ def refresh_dirk_daily():
             and new_rp == old_rp
             and new_vf == old_vf
             and new_vt == old_vt
-            and old.get("availability") is True
+            and old.get("availability")
         ):
             continue
 
+        print(new_vt, old_vt, new_vf, old_vf,)
         row = {
             "sku": sku,
             "regular_price": new.get("regular_price"),
@@ -411,16 +387,11 @@ def refresh_dirk_daily():
     for sku in add_skus:
         new = new_by_sku[sku]
         url = sku_to_url.get(sku)
-        if not url:
-            continue
-        
-        product_name_du = new.get("product_name_du")
-
         rows_to_upsert.append(
             {
                 "sku": sku,
                 "url": url,
-                "product_name_du": product_name_du,
+                "product_name_du": new.get("product_name_du"),
                 "brand": new.get("brand"),
                 "unit_du": new.get("unit_du"),
                 "regular_price": new.get("regular_price"),
@@ -428,6 +399,7 @@ def refresh_dirk_daily():
                 "valid_from": new.get("valid_from"),
                 "valid_to": new.get("valid_to"),
                 "availability": True,
+                "image": new.get("image")
             }
         )
 
@@ -441,4 +413,3 @@ def refresh_dirk_daily():
     print("[Dirk daily] Done.")
 
 
-refresh_dirk_daily()
