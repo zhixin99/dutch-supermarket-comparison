@@ -9,6 +9,9 @@ from datetime import date, datetime
 
 from backend.db.supabase_utils import get_supabase, upsert_rows
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # ---------------------------------------------------------------------------
 # Basic constants
@@ -113,25 +116,6 @@ TOP_CATEGORY_CIDS = [
     "999999-100225",  # Tijdelijk assortiment
 ]
 
-
-def parse_unit_from_attributes(attributes):
-    base_unit = None
-    ratio = None
-    for attr in attributes:
-        name = attr.get("name")
-        values = attr.get("values") or []
-        if not values:
-            continue
-        if name == "BaseUnit":
-            base_unit = values[0]
-        elif name == "RatioBasePackingUnit":
-            try:
-                ratio = float(values[0])
-            except ValueError:
-                ratio = None
-    return base_unit, ratio
-
-
 def fetch_category_items(tn_cid: str, page_size: int = 16):
     """
     Start from page 1 of a given category (tn_cid).
@@ -205,6 +189,22 @@ def fetch_category_items(tn_cid: str, page_size: int = 16):
 
     return all_items
 
+def parse_unit_from_attributes(attributes):
+    base_unit = None
+    ratio = None
+    for attr in attributes:
+        name = attr.get("name")
+        values = attr.get("values") or []
+        if not values:
+            continue
+        if name == "BaseUnit":
+            base_unit = values[0]
+        elif name == "RatioBasePackingUnit":
+            try:
+                ratio = float(values[0])
+            except ValueError:
+                ratio = None
+    return base_unit, ratio
 
 def fetch_all_skus():
     all_items = []
@@ -460,11 +460,11 @@ def refresh_hoogvliet_daily():
     supabase = get_supabase()
     resp = supabase.table("hoogvliet").select(
         "url, sku, regular_price, current_price, availability, valid_from, valid_to"
-    ).execute()    
+    ).eq("availability", True).execute()    
     old_rows = resp.data or []
     old_by_sku = {str(r["sku"]): r for r in old_rows if r.get("sku")}
     old_skus = set(old_by_sku.keys())
-    print(f"[hoogvliet daily] Found {len(old_skus)} existing Hoogvliet products in DB.")
+    print(f"[hoogvliet daily] Found {len(old_skus)} existing available Hoogvliet products in DB.")
 
 
     # -------------------------------------------------------------------
@@ -492,7 +492,6 @@ def refresh_hoogvliet_daily():
     # 3.1) missing_skus
     # ----------------------------------------------------------------------
     for sku in missing_skus:
-        old = old_by_sku[sku]
         rows_to_upsert.append({
             "sku": sku,
             "availability": False,
@@ -591,3 +590,5 @@ def refresh_hoogvliet_daily():
     upsert_rows("hoogvliet", rows_to_upsert, conflict_col="sku")
 
     print("[hoogvliet daily] Done.")
+
+refresh_hoogvliet_daily()
