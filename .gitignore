@@ -6,3 +6,15 @@ __pycache__
 .env
 .vscode
 .venv
+
+# Python virtual environment
+venv/
+.venv/
+env/
+bin/
+lib/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
