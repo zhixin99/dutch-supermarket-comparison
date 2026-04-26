@@ -7,14 +7,16 @@ def normalize_unit(unit_text: str):
     Converts messy Dutch unit strings into (unit_qty, unit_type)
     unit_type ∈ {"kg", "l", "piece"} or (None, None) if unknown.
     """
-    if pd.isna(unit_text):
-        return None, None
+    if pd.isna(unit_text) or unit_text is None:
+        return None
 
     s = unit_text.strip().lower()
+
     s = s.replace(",", ".")
     s = s.replace("×", "x")  
     s = s.replace("stuks", "stuk")
     s = s.replace("st.", "stuk")
+
 
     # "5-pack" -> "5 pack"
     s = s.replace("-"," ")      
@@ -28,11 +30,14 @@ def normalize_unit(unit_text: str):
     # "los per 500 g" -> "500 g"
     s = s.replace("los per ", "")    
 
+    #"0. 75" -> "0.75"
+    s = re.sub(r'(\d+)\s*\.\s*(\d+)', r'\1.\2', s)
+
     # "2-3 pers | 20 min" -> "1 piece"
     if "|" in s:
         s = s.split("|", 1)[0].strip()
     if re.search(r"\bpers(?:oon|onen)?\b", s):
-        return 1, "piece"
+        return "1 piece"
     
     # "per 500 g" -> "500 g", "per stuk" -> "stuk"
     s = re.sub(r"^\s*per\s+", "", s) 
@@ -59,7 +64,7 @@ def normalize_unit(unit_text: str):
         unit_type = m.group(3).split()[0]
         s = str(unit_qty) + unit_type
     
-    return s
+    return s.strip()
 
 
 def split_unit(unit_text): 
@@ -67,6 +72,9 @@ def split_unit(unit_text):
     Splits the normalized format of unit into (unit_qty, unit_type),
     with unit_type ∈ {"kg", "l", "stuk"}.
     """
+    if not isinstance(unit_text, str) or not unit_text:
+        return None, None
+    
     m = re.match(r"^\s*(\d+(?:\.\d+)?)\s*([a-zA-Z]+)", unit_text)
     if not m:
         print("[WARN] cannot parse:", unit_text)
