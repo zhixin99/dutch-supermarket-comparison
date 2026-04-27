@@ -9,10 +9,6 @@ from datetime import date
 from backend.db.supabase_utils import get_supabase, upsert_rows
 from backend.scrapers.utils import normalize_price
 
-from dotenv import load_dotenv
-load_dotenv()
-
-
 # ---------------------------------------------------------------------------
 # Basic constants
 # ---------------------------------------------------------------------------

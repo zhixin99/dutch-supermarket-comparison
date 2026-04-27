@@ -14,9 +14,6 @@ from typing import Dict, Any, List, Set
 from backend.scrapers.utils import normalize_date
 from backend.scrapers.utils import normalize_price
 
-from dotenv import load_dotenv
-load_dotenv()
-
 # ---------------------------------------------------------------------------
 # Fetch products via API
 # ---------------------------------------------------------------------------
