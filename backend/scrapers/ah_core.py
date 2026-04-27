@@ -181,7 +181,8 @@ def fetch_all_products_via_taxonomies(
 			data = search_products_by_taxonomy(
 				access_token, taxonomy_id=tid, page=page, size=page_size
 			)
-			if not data:
+
+			if not data or not isinstance(data, dict):
 				break
 
 			page_info = data.get("page") or {}
@@ -219,14 +220,13 @@ def map_product_to_row(p: Dict[str, Any]) -> Dict[str, Any]:
 	wid = p.get("webshopId")
 	url = f"https://www.ah.nl/producten/product/wi{wid}" if wid is not None else None
 
-	title_raw = p.get("title") or ""
-	brand = p.get("brand") or ""
+	brand = (p.get("brand") or "").strip()
+	title_raw = (p.get("title") or "").strip()
+	
 	# title_raw contains brand name. e.g. "AH Latex handschoenen one size". remove the brand name from the title.
-	product_name_du = title_raw.strip()
-	if brand:
-		b = brand.strip()
-		if product_name_du.lower().startswith(b.lower() + " "):
-			product_name_du = product_name_du[len(b) + 1:].strip()
+	product_name_du = title_raw
+	if brand and product_name_du.lower().startswith(brand.lower()):
+		product_name_du = product_name_du[len(brand):].strip().lstrip("- ")
 
 	unit_du = p.get("salesUnitSize")
 
@@ -236,7 +236,11 @@ def map_product_to_row(p: Dict[str, Any]) -> Dict[str, Any]:
 	bonus_start = p.get("bonusStartDate")
 	bonus_end = p.get("bonusEndDate")
 
-	image = p.get("image")[0].get("url")
+	image = p.get("image") or []
+	image_url = None
+
+	if image and isinstance(image, list):
+		image_url = image[0].get("url")
 
 	valid_from = None
 	valid_to = None
@@ -255,7 +259,7 @@ def map_product_to_row(p: Dict[str, Any]) -> Dict[str, Any]:
 		"valid_from": valid_from,
 		"valid_to": valid_to,
 		"brand": brand,
-		"image": image
+		"image": image_url
 	}
 
 
