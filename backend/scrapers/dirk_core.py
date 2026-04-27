@@ -364,7 +364,6 @@ def refresh_dirk_daily():
         ):
             continue
 
-        print(new_vt, old_vt, new_vf, old_vf,)
         row = {
             "sku": sku,
             "regular_price": new.get("regular_price"),

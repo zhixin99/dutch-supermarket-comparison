@@ -142,14 +142,20 @@ def search_products_by_taxonomy(
 		"availableOnline": "true",
 		"orderable": "any",
 	}
-	resp = requests.get(url, headers=auth_headers(access_token), params=params, timeout=10)
 
-	if resp.status_code == 400:
-		print(f"[AH search taxonomy] 400 for taxonomyId={taxonomy_id}, page={page}")
-		return {}
+	try: 
+		resp = requests.get(url, headers=auth_headers(access_token), params=params, timeout=10)
+		if resp.status_code == 403:
+			print(f"⚠️  [AH] 403 Forbidden at taxonomy {taxonomy_id}. We are being throttled.")
+			return {}
 
-	resp.raise_for_status()
-	return resp.json()
+		resp.raise_for_status()
+		return resp.json()
+		
+	except Exception as e:
+		print(f"❌ [AH] Error fetching taxonomy {taxonomy_id}: {e}")
+		return {} 
+
 
 def fetch_all_products_via_taxonomies(
 	access_token: str,
@@ -200,7 +206,7 @@ def fetch_all_products_via_taxonomies(
 			if page >= total_pages:
 				break
 
-			time.sleep(0.03)  
+			time.sleep(0.2)  
 
 	print(f"\n[AH] total unique products collected via taxonomy: {len(all_products_by_id)}")
 	return list(all_products_by_id.values())
