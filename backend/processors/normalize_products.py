@@ -4,8 +4,10 @@ from backend.db.supabase_utils import get_supabase, upsert_rows
 
 def normalize_unit(unit_text: str):
     """
-    Converts messy Dutch unit strings into (unit_qty, unit_type)
-    unit_type ∈ {"kg", "l", "piece"} or (None, None) if unknown.
+    Converts messy Dutch unit into a string with the format of unit_qty unit_type
+    - unit_qty is a number
+    - unit_type ∈ {"kg", "l", "piece"} 
+    - return None if unknown
     """
     if pd.isna(unit_text) or unit_text is None:
         return None
@@ -64,7 +66,7 @@ def normalize_unit(unit_text: str):
         unit_type = m.group(3).split()[0]
         s = str(unit_qty) + unit_type
     
-    return s.strip()
+    return s
 
 
 def split_unit(unit_text): 

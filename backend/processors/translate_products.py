@@ -26,8 +26,7 @@ def translate_cached(text):
 
 def translate_missing_product_names(table: str):
     """
-    Translate product_name_du → product_name_en
-    only for rows where product_name_en IS NULL
+    Translate product_name_du → product_name_en only for rows where product_name_en IS NULL
     """
     supabase = get_supabase()
 
