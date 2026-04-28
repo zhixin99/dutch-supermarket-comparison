@@ -231,12 +231,13 @@ def map_product_to_row(p: Dict[str, Any]) -> Dict[str, Any]:
 	unit_du = p.get("salesUnitSize")
 
 	regular_price = p.get("priceBeforeBonus")
-	current_price = p.get("currentPrice", regular_price)
+	raw_current = p.get("currentPrice")
+	current_price = raw_current if raw_current is not None else regular_price
 
 	bonus_start = p.get("bonusStartDate")
 	bonus_end = p.get("bonusEndDate")
 
-	image = p.get("image") or []
+	image = p.get("images") or []
 	image_url = None
 
 	if image and isinstance(image, list):
