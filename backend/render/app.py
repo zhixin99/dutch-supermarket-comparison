@@ -1,57 +1,39 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import List
-
+from fastapi import FastAPI, Body, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from search_logic import search_one_product
 
-from fastapi.middleware.cors import CORSMiddleware
+app = FastAPI()
 
-from contextlib import asynccontextmanager
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("=== REGISTERED ROUTES ===")
-    for r in app.routes:
-        print(r.path, r.methods)
-    print("=========================")
-    yield
-
-app = FastAPI(lifespan=lifespan)
-
-# CORS
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://dutch-supermarket-comparison.vercel.app", # for deployed website
-        "http://localhost:3000",  # for local
+        "https://dutch-supermarket-comparison.vercel.app",
+        "http://localhost:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class SearchRequest(BaseModel):
-    queries: List[str]
-    search_lang: str = "du"
-    supermarkets: List[str] = ["ah", "dirk", "hoogvliet"]
-    sort_by: str = "unit_price"
-
-
 @app.post("/search")
-def search(req: SearchRequest):
-    results = []
-    for q in req.queries:
-        res = search_one_product(
-            query_text=q,
-            search_lang=req.search_lang,
-            supermarkets=req.supermarkets,
-            sort_by=req.sort_by,
+def search(query: str = Body(..., embed=True)):
+    """
+    Expects JSON: {"query": "your product"}
+    The 'embed=True' means it looks for the 'query' key inside the JSON body.
+    """
+    try:
+        results = search_one_product(
+            query_text=query,
+            search_lang="du",
+            supermarkets=["ah", "dirk", "hoogvliet"],
+            sort_by="unit_price"
         )
-        results.append(res)
-    return {"results": results}
-
+        return {"results": results}
+    except Exception as e:
+        print(f"Error during search: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.get("/")
 def health():
     return {"status": "ok", "message": "Render backend running"}
-

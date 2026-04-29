@@ -1,1 +1,3 @@
 # dutch-supermarket-comparison
+
+## Install
