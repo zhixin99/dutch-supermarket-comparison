@@ -76,7 +76,8 @@ def search_one_product(
 
     scored = []
     for r in rows:
-        emb = r.get("embedding_du")
+        emb_col = "embedding_en" if search_lang == "en" else "embedding_du"
+        emb = r.get(emb_col)
         v = parse_embedding(emb)
         if v is None:
             continue

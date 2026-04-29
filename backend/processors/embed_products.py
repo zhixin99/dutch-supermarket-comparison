@@ -36,8 +36,8 @@ def embed_missing_products(table: str):
 
     res = (
         supabase.table(table)
-        .select("sku, brand, product_name_du, embedding_du")
-        .is_("embedding_du", None)
+        .select("sku, brand, product_name_du, product_name_en, embedding_du, embedding_en")
+        .or_("embedding_du.is.null,embedding_en.is.null")
         .not_.is_("product_name_du", None)
         .execute()
     )
@@ -47,34 +47,55 @@ def embed_missing_products(table: str):
         print(f"[embed] {table}: no product to embed")
         return
 
-    texts = []
-    skus = []
-    updates = []
+
+    batch_texts = []
+    batch_metadata = [] # To keep track of which SKU and which Language each embedding belongs to
 
     for r in rows:
+        sku = str(r["sku"])
         brand = (r.get("brand") or "").strip()
-        name = (r.get("product_name_du") or "").strip()
+        
+        # Check Dutch
+        if r.get("embedding_du") is None and r.get("product_name_du"):
+            name_du = r.get("product_name_du").strip()
+            text_du = f"{brand} {name_du}".strip()
+            if text_du:
+                batch_texts.append(text_du)
+                batch_metadata.append({"sku": sku, "lang": "du"})
 
-        text = (brand + " " + name).strip()
-       
-        if not text:
-            continue
+        # Check English
+        if r.get("embedding_en") is None and r.get("product_name_en"):
+            name_en = r.get("product_name_en").strip()
+            text_en = f"{brand} {name_en}".strip()
+            if text_en:
+                batch_texts.append(text_en)
+                batch_metadata.append({"sku": sku, "lang": "en"})
 
-        skus.append(str(r["sku"]))
-        texts.append(text)
-
-    if not skus:
-        print(f"[embed] {table}: all {len(rows)} rows have empty names, done.")
+    if not batch_texts:
+        print(f"[embed] {table}: Found rows with NULLs but no valid text to embed.")
         return 
-    
-    embs = encode_texts(texts)
 
-    updates = [
-        {"sku": sku, "embedding_du": emb}
-        for sku, emb in zip(skus, embs)
-    ]
+    print(f"[embed] Processing {len(batch_texts)} new embeddings...")
+    embs = encode_texts(batch_texts)
 
+    # Now we reorganize the flat list of embeddings back into a format Supabase understands
+    # We use a dictionary keyed by SKU to group updates for the same product
+    updates_map = {}
 
-    if updates: 
-        upsert_rows(table, updates, conflict_col="sku")
-        print(f"[embed] {table}: embed {len(updates)} rows")
+    for i, meta in enumerate(batch_metadata):
+        sku = meta["sku"]
+        lang = meta["lang"]
+        embedding = embs[i]
+
+        if sku not in updates_map:
+            updates_map[sku] = {"sku": sku}
+        
+        # This adds 'embedding_du' or 'embedding_en' to the update object
+        updates_map[sku][f"embedding_{lang}"] = embedding
+
+    # Convert map back to list for upsert
+    final_updates = list(updates_map.values())
+
+    if final_updates: 
+        upsert_rows(table, final_updates, conflict_col="sku")
+        print(f"[embed] {table}: Successfully updated {len(final_updates)} products.")
