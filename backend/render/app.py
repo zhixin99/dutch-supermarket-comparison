@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from search_logic import search_one_product
+from pydantic import BaseModel  
+from typing import List
 
 app = FastAPI()
 
@@ -16,17 +18,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class SearchRequest(BaseModel):
+    query: str
+    lang: str = "du"
+    supermarkets: List[str] = ["ah", "dirk", "hoogvliet"]
+
 @app.post("/search")
-def search(query: str = Body(..., embed=True)):
+def search(req: SearchRequest):
     """
     Expects JSON: {"query": "your product"}
     The 'embed=True' means it looks for the 'query' key inside the JSON body.
     """
     try:
         results = search_one_product(
-            query_text=query,
-            search_lang="du",
-            supermarkets=["ah", "dirk", "hoogvliet"],
+            query_text=req.query,
+            search_lang=req.lang,
+            supermarkets=req.supermarkets,
             sort_by="unit_price"
         )
         return {"results": results}
