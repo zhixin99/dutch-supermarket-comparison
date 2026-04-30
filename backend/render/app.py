@@ -12,6 +12,7 @@ app.add_middleware(
     allow_origins=[
         "https://dutch-supermarket-comparison.vercel.app",
         "http://localhost:5173",
+        "https://compare-dutch-supermarkets.netlify.app/"
     ],
     allow_credentials=True,
     allow_methods=["*"],

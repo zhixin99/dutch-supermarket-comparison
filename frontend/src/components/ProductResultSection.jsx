@@ -19,8 +19,6 @@ export default function ProductResultSection({products, isLoading}) {
 
     const safeProducts = products?.results?.results || []
 
-    console.log(safeProducts)
-
     const sortedProducts = [...safeProducts].sort((a, b) => {
         if (sortBy === "price") {
             return a.unit_price - b.unit_price;
@@ -49,7 +47,7 @@ export default function ProductResultSection({products, isLoading}) {
 
     return (
         <section className="result-section">
-            <h2>Search Results</h2>
+            {safeProducts.length ? <h2>Search Results</h2> : ""}
 
             <div aria-live="polite" className="sr-only">
                 {isLoading ? "Searching for products..." : `${safeProducts.length} products found.`}
