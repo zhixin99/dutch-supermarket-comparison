@@ -10,9 +10,8 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://dutch-supermarket-comparison.vercel.app",
         "http://localhost:5173",
-        "https://compare-dutch-supermarkets.netlify.app/"
+        "https://compare-dutch-supermarkets.netlify.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
