@@ -89,7 +89,7 @@ def split_unit(unit_text):
         return unit_qty / 1000.0, "kg"
     if unit_type in ("kg", "kilo"):
         return unit_qty, "kg"
-    if unit_type == "ml":
+    if unit_type in ("ml", "milliliter"):
         return unit_qty / 1000.0, "l"
     if unit_type == "cl":
         return unit_qty / 100.0, "l"
