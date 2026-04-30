@@ -8,7 +8,8 @@ function App() {
 	const [products, setProducts] = useState([])
     const [isLoading, setIsLoading] = useState(false)
 
-	async function handleSearch(query, lang, supermarkets, sort) {
+	async function handleSearch(searchData) {
+		const {query, lang, supermarkets} = searchData
 		setIsLoading(true)
 		try {
 			const response = await fetch("https://dutch-supermarket-comparison.onrender.com/search", {
@@ -16,7 +17,10 @@ function App() {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ query: query }),
+				body: JSON.stringify({ 
+					query: query,
+					lang: lang, 
+					supermarkets: supermarkets }),
 			})
 
 			if (!response.ok) {

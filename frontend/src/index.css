@@ -1,19 +1,11 @@
 :root {
-	/* Brand Colors */
 	--color-blue: #002855;
 	--color-orange: #FF9600;
 	--color-grey: #718096;
 	--color-red: #E53E3E;
-	
-	/* Backgrounds & Surfaces */
+	--color-black: #1A202C;
+	--color-light-grey: #E2E8F0;
 	--bg-slate: #F8FAFC;
-	--card-white: #FFFFFF;
-	--border-light: #E2E8F0;
-	
-	/* Supermarket Branding */
-	--color-ah: #179EDA;    /* Albert Heijn */
-	--color-jumbo: #FEC20F; /* Jumbo */
-	--color-plus: #88C542;  /* Plus */
 }
 
 *, *::before, *::after {
@@ -35,13 +27,22 @@ h1, h2, h3 {
 	font-weight: 800; 
 	letter-spacing: -0.02em;
 	font-family: "DM Serif Display", sans-serif;
-
 }
 
 h1 {
 	font-size: 3rem;
 	margin-bottom: 10px;
 }
+
+h3 {
+	margin: 0; 
+}
+
+h4 {
+	margin: 0 0 0.3em;
+	font-weight: 600;
+}
+
 
 /* Common Settings */
 .text-highlight {
@@ -51,6 +52,19 @@ h1 {
 .text-grey {
 	color: var(--color-grey);
 }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 
 /* Header */
 .logo {
@@ -76,21 +90,22 @@ header {
 	padding: 1em; 
 }
 
-.search-container {
+.white-container {
 	margin-top: 25px; 
 	margin-left: auto; 
 	margin-right: auto; 
-	padding: 1em;
 	background-color: white;
 	box-shadow: 0 10px 15px -5px rgba(0, 0, 0, 0.05);
 	border-radius: 8px;
-	max-width: 650px;
+	max-width: 750px;
+	display: flex;
+	color: var(--color-black);
 }
 
-.search-wrapper {
-	display: flex;
+.search-container {
 	align-items: center;
 	gap: 12px;
+	padding: 1em;
 }
 
 .fa-magnifying-glass {
@@ -101,7 +116,12 @@ header {
 	flex-grow: 1;
 	padding: 1em;
 	border-radius: 8px;
-	border: none; 
+	border: 1px solid var(--color-light-grey); 
+	outline: none;
+}
+
+.search-input:hover,  .search-input:focus{
+    border: 1px solid var(--color-orange);
 }
 
 .search-button {
@@ -121,12 +141,165 @@ header {
 }
 
 
+/* Filters  */
+.filter-container {
+	display: grid; 
+	grid-template-columns: 1fr 1fr;
+	text-align: left;
+	align-items: stretch;
+	width: 100%; 
+}
+
+@media (max-width: 650px) {
+	.filter-container {
+		grid-template-columns: 1fr;
+	}
+}
+
+fieldset.filter-part-section {
+    margin: 0;
+    min-width: 0; 
+	border: none; 
+}
+
+
+fieldset.filter-part-section legend {
+    float: left; 
+    width: auto;
+    margin-bottom: 0;
+}
+
+.filter-part-section {
+	padding: 1em; 
+    display: flex;
+    flex-direction: column;
+}
+
+.explain-text {
+	margin-bottom: 1em; 
+}
+
+.store-checkbox-container {
+	display: grid; 
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.8em; 
+	flex-grow: 1;
+}
+
+.store-container {
+	border: 1px solid var(--color-light-grey);
+	border-radius: 8px;
+	display: flex; 
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.store-container:hover {
+    border-color: var(--color-orange);
+    background-color: #fffaf5; 
+    cursor: pointer;
+}
+
+.store-clickable-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.filter-store-icon {
+	width: 40px; 
+	margin: 0 auto; 
+	display: block;
+	aspect-ratio: 1 / 1;
+}
+
+.check-box {
+	appearance: none;
+    -webkit-appearance: none;
+	width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+	border: 2px solid var(--color-light-grey);
+	display: inline-grid;
+    place-content: center;
+	margin-right: 10px; 
+	margin-left: auto;
+}
+
+.check-box:checked {
+	background-color: var(--color-orange);
+	border-color: var(--color-orange);
+}
+
+.check-box::before {
+	content: "";
+	width: 0.65em;
+	height: 0.65em;
+	transform: scale(0);
+	transition: 120ms transform ease-in-out;
+	box-shadow: inset 1em 1em white;	
+	clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.check-box:checked::before {
+  transform: scale(1);
+}
+
+.language-container {
+	border: 1px solid var(--color-light-grey);
+	border-radius: 8px;
+	padding: 0.5em; 
+	display: flex; 
+	align-items: center;
+}
+
+.language-container:hover {
+    border-color: var(--color-orange);
+    background-color: #fffaf5; 
+    cursor: pointer;
+}
+
+.top-language-container {
+	margin-bottom: 0.5em;
+}
+
+.language-clickable-label {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+	display: flex; 
+}
+
 /* The Product Card */
 .result-section {
 	max-width: 1000px; 
 	margin: 0 auto; 
 	padding: 1em; 
 }
+
+.sort-container {
+	margin-bottom: 1em; 
+}
+
+.sort-container select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid var(--color-light-grey);
+	outline: none;
+	cursor: pointer;
+}
+
+.sort-container select:hover,  .sort-container select:focus{
+    border-color: var(--color-orange);
+}
+
 
 .card-container {
 	width: 100%; 
@@ -137,7 +310,7 @@ header {
 
 .product-card {
 	background: var(--card-white);
-	border: 1px solid var(--border-light);
+	border: 1px solid var(--color-light-grey);
 	border-radius: 12px; 
 	padding: 1em;
 	box-shadow: 0 10px 15px -5px rgba(0, 0, 0, 0.05);
@@ -165,9 +338,26 @@ header {
 	margin-left: auto;
 }
 
-.store-image {
+.image-container {
 	width: 50%;
+	aspect-ratio: 1 / 1;
 	margin: 0 auto; 
+	display: flex; 
+	align-items: center;
+	justify-content: center;
+}
+
+.store-image {
+	margin: 0 auto; 
+	display: block;
+	object-fit: contain;
+	width: 100%;
+	height: 100%; 
+}
+
+.brand-container {
+	min-height: 1.8em;
+	font-size: 0.85rem;
 	display: block;
 }
 
@@ -193,5 +383,6 @@ header {
 	display: block;
 	text-align: center;
 	cursor: pointer;
+	margin-top: auto; 
 }
 
