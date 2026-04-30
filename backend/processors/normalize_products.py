@@ -93,7 +93,7 @@ def split_unit(unit_text):
         return unit_qty / 1000.0, "l"
     if unit_type == "cl":
         return unit_qty / 100.0, "l"
-    if unit_type == "l":
+    if unit_type in ("l", "liter"):
         return unit_qty, "l"    
     
     return unit_qty, "stuk"
